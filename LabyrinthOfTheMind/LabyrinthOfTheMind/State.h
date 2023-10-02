@@ -5,6 +5,8 @@
 #include<iostream>
 #include<ctime>
 #include<cstdlib>
+#include<fstream>
+#include<sstream>
 
 #include "SFML\System.hpp"
 #include "SFML\Window.hpp"
