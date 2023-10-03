@@ -94,14 +94,9 @@ MainMenuState::~MainMenuState()
 }
 
 
-void MainMenuState::endState()
-{
-	std::cout << "Ending MainMenuState" << "\n";
-}
-
 void MainMenuState::updateInput(const float& dt)
 {
-	this->checkForQuit();
+
 }
 
 void MainMenuState::updateButtons()
@@ -121,7 +116,7 @@ void MainMenuState::updateButtons()
 	//Check for quit
 	if (this->buttons["QUIT_STATE"]->isPressed())
 	{
-		this->quit = true;
+		this->endState();
 	}
 }
 
