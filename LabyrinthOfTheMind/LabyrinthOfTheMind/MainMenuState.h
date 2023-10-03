@@ -2,6 +2,7 @@
 #define MAINMENUSTATE_H
 
 #include "GameState.h"
+#include "Button.h"
 
 class MainMenuState :
     public State
@@ -9,8 +10,10 @@ class MainMenuState :
 private:
     //Variables
     sf::RectangleShape background;
+    sf::Font font;
 
     //Functions
+    void initFonts();
     void initKeybinds();
 
 public:
