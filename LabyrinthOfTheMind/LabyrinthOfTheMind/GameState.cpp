@@ -23,7 +23,7 @@ void GameState::initTextures()
 {
 	try
 	{
-		this->textures["PLAYER_IDLE"].loadFromFile("Resources/Images/Sprites/Player/test.png");
+		this->textures["RUN_SHEET"].loadFromFile("Resources/Images/Sprites/Player/test-sheet.png");
 	}
 	catch (const std::exception&)
 	{
@@ -33,7 +33,7 @@ void GameState::initTextures()
 
 void GameState::initPlayers()
 {
-	this->player = new Player(960, 540, this->textures["PLAYER_IDLE"]);
+	this->player = new Player(960, 540, this->textures["RUN_SHEET"]);
 }
 
 //Constructors/Destructors
