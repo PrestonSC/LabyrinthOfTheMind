@@ -123,13 +123,21 @@ void MainMenuState::updateButtons()
 		it.second->update(this->mousePosView);
 	}
 
-	//Check for new game
+	//Game state
 	if (this->buttons["GAME_STATE"]->isPressed())
 	{
 		this->states->push(new GameState(this->window, this->supportedKeys, this->states));
 	}
 
-	//Check for quit
+	//Settings state
+
+	//Editor state
+	if (this->buttons["EDITOR_STATE"]->isPressed())
+	{
+		this->states->push(new EditorState(this->window, this->supportedKeys, this->states));
+	}
+
+	//Quit state
 	if (this->buttons["QUIT_STATE"]->isPressed())
 	{
 		this->endState();

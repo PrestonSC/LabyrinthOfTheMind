@@ -23,7 +23,7 @@ void GameState::initTextures()
 {
 	try
 	{
-		this->textures["RUN_SHEET"].loadFromFile("Resources/Images/Sprites/Player/test-sheet.png");
+		this->textures["PLAYER_SHEET"].loadFromFile("Resources/Images/Sprites/Player/test-sheet.png");
 	}
 	catch (const std::exception&)
 	{
@@ -33,7 +33,7 @@ void GameState::initTextures()
 
 void GameState::initPlayers()
 {
-	this->player = new Player(960, 540, this->textures["RUN_SHEET"]);
+	this->player = new Player(960, 540, this->textures["PLAYER_SHEET"]);
 }
 
 //Constructors/Destructors
@@ -53,13 +53,17 @@ GameState::~GameState()
 void GameState::updateInput(const float& dt)
 {
 	//Update player input
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("MOVE_LEFT"))))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("MOVE_LEFT"))) || 
+		sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("ARROW_LEFT"))))
 		this->player->move(-1.f, 0.f, dt);
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("MOVE_RIGHT"))))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("MOVE_RIGHT"))) ||
+		sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("ARROW_RIGHT"))))
 		this->player->move(1.f, 0.f, dt);
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("MOVE_UP"))))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("MOVE_UP"))) || 
+		sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("ARROW_UP"))))
 		this->player->move(0.f, -1.f, dt);
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("MOVE_DOWN"))))
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("MOVE_DOWN"))) ||
+		sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("ARROW_DOWN"))))
 		this->player->move(0.f, 1.f, dt);
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("CLOSE"))))

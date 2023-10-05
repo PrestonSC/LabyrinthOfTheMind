@@ -49,7 +49,7 @@ private:
 		void play(const float& dt)
 		{
 			//Update timer
-			this->timer += 100.f * dt;
+			this->timer += 80.f * dt;
 			if (this->timer >= this->animationTimer)
 			{
 				//Reset timer
@@ -79,10 +79,15 @@ private:
 	sf::Sprite& sprite;
 	sf::Texture& textureSheet;
 	std::map<std::string, Animation*> animations;
+	Animation* lastAnimation;
+	std::string lastAnimationKey;
 
 public:
 	AnimationComponent(sf::Sprite& sprite, sf::Texture& texture_sheet);
 	virtual ~AnimationComponent();
+
+	//Accessors
+	const std::string getLastAnimation() const;
 
 	//Functions
 	void addAnimation(const std::string key, 
