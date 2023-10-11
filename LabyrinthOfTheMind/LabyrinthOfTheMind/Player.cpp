@@ -1,8 +1,10 @@
+#include "stdafx.h"
 #include "Player.h"
 
 //Initializer functions
 void Player::initVariables()
 {
+	this->attacking = false;
 }
 
 void Player::initComponents()
@@ -17,22 +19,13 @@ Player::Player(float x, float y, sf::Texture& texture_sheet)
 
 	this->setPosition(x, y);
 
+	this->createHitboxComponent(this->sprite, 23.f, 50.f, 45.f, 30.f);
 	this->createMovementComponent(300.f, 15.f, 5.f);
 	this->createAnimationComponent(texture_sheet);
 
-	this->animationComponent->addAnimation("IDLE_DOWN", 10.f, 0, 0, 0, 0, 63, 63);
-	this->animationComponent->addAnimation("IDLE_UP", 10.f, 0, 4, 0, 4, 63, 63);
-	this->animationComponent->addAnimation("IDLE_LEFT", 10.f, 0, 2, 0, 2, 63, 63);
-	this->animationComponent->addAnimation("IDLE_RIGHT", 10.f, 0, 6, 0, 6, 63, 63);
-
-	this->animationComponent->addAnimation("RUN_DOWN", 10.f, 0, 0, 3, 0, 63, 63);
-	this->animationComponent->addAnimation("RUN_DOWN_LEFT", 10.f, 0, 1, 3, 1, 63, 63);
-	this->animationComponent->addAnimation("RUN_LEFT", 10.f, 0, 2, 3, 2, 63, 63);
-	this->animationComponent->addAnimation("RUN_UP_LEFT", 10.f, 0, 3, 3, 3, 63, 63);
-	this->animationComponent->addAnimation("RUN_UP", 10.f, 0, 4, 3, 4, 63, 63);
-	this->animationComponent->addAnimation("RUN_UP_RIGHT", 10.f, 0, 5, 3, 5, 63, 63);
-	this->animationComponent->addAnimation("RUN_RIGHT", 10.f, 0, 6, 3, 6, 63, 63);
-	this->animationComponent->addAnimation("RUN_DOWN_RIGHT", 10.f, 0, 7, 3, 7, 63, 63);
+	this->animationComponent->addAnimation("ATTACK", 10.f, 3, 0, 3, 7, 215, 118);
+	this->animationComponent->addAnimation("IDLE", 15.f, 0, 0, 0, 4, 92, 117);
+	this->animationComponent->addAnimation("RUN", 10.f, 1, 0, 1, 7, 92, 117);
 }
 
 Player::~Player()
@@ -40,53 +33,70 @@ Player::~Player()
 }
 
 //Functions
+void Player::updateAttack()
+{
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+	{
+		this->attacking = true;
+	}
+}
+
+void Player::updateAnimation(const float& dt)
+{
+	if (this->attacking)
+	{
+		//Animate and check for animation end
+		if (this->animationComponent->play("ATTACK", dt, true))
+			this->attacking = false;
+	}
+
+	if (this->movementComponent->getState(IDLE))
+	{
+		this->animationComponent->play("IDLE", dt);
+	}
+	else if (this->movementComponent->getState(MOVING_LEFT))
+	{
+		if (this->sprite.getScale().x > 0.f)
+		{
+			this->sprite.setOrigin(90.f, 0.f);
+			this->sprite.setScale(-1.f, 1.f);
+		}
+		this->animationComponent->play("RUN", dt,
+			this->movementComponent->getVelocity().x,
+			this->movementComponent->getMaxVelocity());
+	}
+	else if (this->movementComponent->getState(MOVING_RIGHT))
+	{
+		if (this->sprite.getScale().x < 0.f)
+		{
+			this->sprite.setOrigin(0.f, 0.f);
+			this->sprite.setScale(1.f, 1.f);
+		}
+		this->animationComponent->play("RUN", dt,
+			this->movementComponent->getVelocity().x,
+			this->movementComponent->getMaxVelocity());
+	}
+	else if (this->movementComponent->getState(MOVING_UP))
+	{
+		this->animationComponent->play("RUN", dt,
+			this->movementComponent->getVelocity().y,
+			this->movementComponent->getMaxVelocity());
+	}
+	else if (this->movementComponent->getState(MOVING_DOWN))
+	{
+		this->animationComponent->play("RUN", dt,
+			this->movementComponent->getVelocity().y,
+			this->movementComponent->getMaxVelocity());
+	}
+}
+
 void Player::update(const float& dt)
 {
 	this->movementComponent->update(dt);
-
 	
-	if (this->movementComponent->getState(MOVING_DOWN_LEFT))
-		this->animationComponent->play("RUN_DOWN_LEFT", dt);
-	else if (this->movementComponent->getState(MOVING_DOWN_RIGHT))
-		this->animationComponent->play("RUN_DOWN_RIGHT", dt);
-	else if (this->movementComponent->getState(MOVING_DOWN))
-		this->animationComponent->play("RUN_DOWN", dt);
-	else if (this->movementComponent->getState(MOVING_UP_LEFT))
-		this->animationComponent->play("RUN_UP_LEFT", dt);
-	else if (this->movementComponent->getState(MOVING_UP_RIGHT))
-		this->animationComponent->play("RUN_UP_RIGHT", dt);
-	else if (this->movementComponent->getState(MOVING_LEFT))
-		this->animationComponent->play("RUN_LEFT", dt);
-	else if (this->movementComponent->getState(MOVING_RIGHT))
-		this->animationComponent->play("RUN_RIGHT", dt);
-	else if (this->movementComponent->getState(MOVING_UP))
-		this->animationComponent->play("RUN_UP", dt);
-	else if (this->movementComponent->getState(IDLE))
-	{
-		if (this->animationComponent->getLastAnimation() == "IDLE_UP")
-			this->animationComponent->play("IDLE_UP", dt);
-		else if (this->animationComponent->getLastAnimation() == "IDLE_DOWN")
-			this->animationComponent->play("IDLE_DOWN", dt);
-		else if (this->animationComponent->getLastAnimation() == "IDLE_RIGHT")
-			this->animationComponent->play("IDLE_RIGHT", dt);
-		else if (this->animationComponent->getLastAnimation() == "IDLE_LEFT")
-			this->animationComponent->play("IDLE_LEFT", dt);
-		else if (this->animationComponent->getLastAnimation() == "RUN_DOWN")
-			this->animationComponent->play("IDLE_DOWN", dt);
-		else if (this->animationComponent->getLastAnimation() == "RUN_DOWN_RIGHT")
-			this->animationComponent->play("IDLE_DOWN", dt);
-		else if (this->animationComponent->getLastAnimation() == "RUN_DOWN_LEFT")
-			this->animationComponent->play("IDLE_DOWN", dt);
-		else if (this->animationComponent->getLastAnimation() == "RUN_UP")
-			this->animationComponent->play("IDLE_UP", dt);
-		else if (this->animationComponent->getLastAnimation() == "RUN_UP_LEFT")
-			this->animationComponent->play("IDLE_UP", dt);
-		else if (this->animationComponent->getLastAnimation() == "RUN_UP_RIGHT")
-			this->animationComponent->play("IDLE_UP", dt);
-		else if (this->animationComponent->getLastAnimation() == "RUN_LEFT")
-			this->animationComponent->play("IDLE_LEFT", dt);
-		else if (this->animationComponent->getLastAnimation() == "RUN_RIGHT")
-			this->animationComponent->play("IDLE_RIGHT", dt);
+	this->updateAttack();
 
-	}
+	this->updateAnimation(dt);
+
+	this->hitboxComponent->update();
 }

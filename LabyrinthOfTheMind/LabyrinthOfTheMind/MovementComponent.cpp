@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "MovementComponent.h"
 
 MovementComponent::MovementComponent(sf::Sprite& sprite, float maxVelocity,
@@ -14,6 +15,11 @@ MovementComponent::~MovementComponent()
 
 
 //Accessors
+const float& MovementComponent::getMaxVelocity() const
+{
+	return this->maxVelocity;
+}
+
 const sf::Vector2f& MovementComponent::getVelocity() const
 {
 	return this->velocity;
@@ -33,24 +39,8 @@ const bool MovementComponent::getState(const short unsigned state) const
 		if (this->velocity.x != 0.f || this->velocity.y != 0.f)
 			return true;
 		break;
-	case MOVING_DOWN_LEFT:
-		if (this->velocity.y > 0.f && this->velocity.x < 0.f)
-			return true;
-		break;
-	case MOVING_DOWN_RIGHT:
-		if (this->velocity.y > 0.f && this->velocity.x > 0.f)
-			return true;
-		break;
 	case MOVING_DOWN:
 		if (this->velocity.y > 0.f)
-			return true;
-		break;
-	case MOVING_UP_LEFT:
-		if (this->velocity.y < 0.f && this->velocity.x < 0.f)
-			return true;
-		break;
-	case MOVING_UP_RIGHT:
-		if (this->velocity.y < 0.f && this->velocity.x > 0.f)
 			return true;
 		break;
 	case MOVING_LEFT:
