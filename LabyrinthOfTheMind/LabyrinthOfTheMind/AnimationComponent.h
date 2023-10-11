@@ -1,15 +1,6 @@
 #ifndef ANIMATIONCOMPONENT_H
 #define ANIMATIONCOMPONENT_H
 
-#include<iostream>
-#include<map>
-
-#include "SFML\System.hpp"
-#include "SFML\Window.hpp"
-#include "SFML\Graphics.hpp"
-#include "SFML\Audio.hpp"
-#include "SFML\Network.hpp"
-
 class AnimationComponent
 {
 private:
@@ -21,6 +12,7 @@ private:
 		sf::Texture& textureSheet;
 		float animationTimer;
 		float timer;
+		bool done;
 		int width;
 		int height;
 		sf::IntRect startRect;
@@ -33,10 +25,9 @@ private:
 			int frames_x, int frames_y,
 			int width, int height)
 			: sprite(sprite), textureSheet(texture_sheet), 
-			animationTimer(animation_timer), 
+			animationTimer(animation_timer), timer(0.f), done(false),
 			width(width), height(height)
 		{
-			this->timer = 0.f;
 			this->startRect = sf::IntRect(start_frame_x * width, start_frame_y * height, width, height);
 			this->currentRect = this->startRect;
 			this->endRect = sf::IntRect(frames_x * width, frames_y * height, width, height);
@@ -45,10 +36,18 @@ private:
 			this->sprite.setTextureRect(this->startRect);
 		}
 
+		//Accessor
+		const bool& isDone() const
+		{
+			return this->done;
+		}
+
+
 		//Function
-		void play(const float& dt)
+		const bool& play(const float& dt)
 		{
 			//Update timer
+			this->done = false;
 			this->timer += 80.f * dt;
 			if (this->timer >= this->animationTimer)
 			{
@@ -58,20 +57,54 @@ private:
 				//Animate
 				if (this->currentRect != this->endRect)
 				{
-					this->currentRect.left += this->width;
+					this->currentRect.top += this->height;
 				}
 				else //Reset animation
 				{
-					this->currentRect.left = this->startRect.left;
+					this->currentRect.top = this->startRect.top;
+					this->done = true;
 				}
 
 				this->sprite.setTextureRect(this->currentRect);
 			}
+
+			return this->done;
+		}
+
+		const bool& play(const float& dt, float mod_percent)
+		{
+			//Update timer
+			this->done = false;
+
+			if (mod_percent < 0.5f)
+				mod_percent = 0.5f;
+
+			this->timer += mod_percent * 100.f * dt;
+			if (this->timer >= this->animationTimer)
+			{
+				//Reset timer
+				this->timer = 0.f;
+
+				//Animate
+				if (this->currentRect != this->endRect)
+				{
+					this->currentRect.top += this->height;
+				}
+				else //Reset animation
+				{
+					this->currentRect.top = this->startRect.top;
+					this->done = true;
+				}
+
+				this->sprite.setTextureRect(this->currentRect);
+			}
+
+			return this->done;
 		}
 
 		void reset()
 		{
-			this->timer = 0.f;
+			this->timer = this->animationTimer;
 			this->currentRect = this->startRect;
 		}
 	};
@@ -80,14 +113,14 @@ private:
 	sf::Texture& textureSheet;
 	std::map<std::string, Animation*> animations;
 	Animation* lastAnimation;
-	std::string lastAnimationKey;
+	Animation* priorityAnimation;
 
 public:
 	AnimationComponent(sf::Sprite& sprite, sf::Texture& texture_sheet);
 	virtual ~AnimationComponent();
 
 	//Accessors
-	const std::string getLastAnimation() const;
+	const bool& isDone(const std::string key);
 
 	//Functions
 	void addAnimation(const std::string key, 
@@ -96,7 +129,9 @@ public:
 		int frames_x, int frames_y,
 		int width, int height);
 
-	void play(const std::string key, const float& dt);
+	const bool& play(const std::string key, const float& dt, const bool priority = false);
+	const bool& play(const std::string key, const float& dt,
+		const float& modifier, const float& modifier_max, const bool priority = false);
 
 };
 

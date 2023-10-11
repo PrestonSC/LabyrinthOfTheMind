@@ -1,29 +1,10 @@
 #ifndef MOVEMENTCOMPONENT_H
 #define MOVEMENTCOMPONENT_H
 
-#include<iostream>
-#include<ctime>
-#include<cstdlib>
-#include<fstream>
-#include<sstream>
-#include<vector>
-#include<stack>
-#include<map>
-
-#include "SFML\System.hpp"
-#include "SFML\Window.hpp"
-#include "SFML\Graphics.hpp"
-#include "SFML\Audio.hpp"
-#include "SFML\Network.hpp"
-
 enum movement_states {
 	IDLE = 0,
 	MOVING,
-	MOVING_DOWN_LEFT,
-	MOVING_DOWN_RIGHT,
 	MOVING_DOWN,
-	MOVING_UP_LEFT,
-	MOVING_UP_RIGHT,
 	MOVING_LEFT,
 	MOVING_RIGHT,
 	MOVING_UP
@@ -49,6 +30,7 @@ public:
 	virtual ~MovementComponent();
 
 	//Accessors
+	const float& getMaxVelocity() const;
 	const sf::Vector2f& getVelocity() const;
 
 	//Functions
