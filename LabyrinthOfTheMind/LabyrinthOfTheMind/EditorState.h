@@ -16,6 +16,8 @@ class EditorState :
 {
 private:
     //Variables
+    sf::View view;
+
     sf::Font font;
     sf::Text cursorText;
     PauseMenu* pMenu;
@@ -31,8 +33,14 @@ private:
 
     gui::TextureSelector* textureSelector;
 
+    bool collision;
+    short type;
+    float cameraSpeed;
+    int layer;
+
     //Functions
     void initVariables();
+    void initView();
     void initBackground();
     void initFonts();
     void initText();
@@ -45,6 +53,10 @@ private:
 public:
     EditorState(StateData* state_data);
     virtual ~EditorState();
+
+    //Accessors
+    const std::string getTypeStr() const;
+    const std::string getCollisionStr() const;
 
     //Functions
     void updateInput(const float& dt);

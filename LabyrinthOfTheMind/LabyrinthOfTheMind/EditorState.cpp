@@ -8,6 +8,26 @@ void EditorState::initVariables()
 		static_cast<int>(this->stateData->gridSize), 
 		static_cast<int>(this->stateData->gridSize)
 	);
+
+	this->collision = false;
+	this->type = TileTypes::DEFAULT;
+	this->cameraSpeed = 400.f;
+	this->layer = 0;
+}
+
+void EditorState::initView()
+{
+	this->view.setSize(
+		sf::Vector2f(
+			static_cast<float>(this->stateData->gfxSettings->resolution.width),
+			static_cast<float>(this->stateData->gfxSettings->resolution.height)
+		)
+	);
+
+	this->view.setCenter(
+		static_cast<float>(this->stateData->gfxSettings->resolution.width) / 2.f,
+		static_cast<float>(this->stateData->gfxSettings->resolution.height) / 2.f
+	);
 }
 
 void EditorState::initBackground()
@@ -58,6 +78,7 @@ void EditorState::initPauseMenu()
 
 	this->pMenu->addButton("QUIT", 800.f, "Quit");
 	this->pMenu->addButton("SAVE", 700.f, "Save");
+	this->pMenu->addButton("LOAD", 600.f, "Load");
 }
 
 void EditorState::initButtons()
@@ -68,7 +89,7 @@ void EditorState::initButtons()
 void EditorState::initGui()
 {
 	this->sidebar.setSize(sf::Vector2f(
-		100.f, static_cast<float>(this->stateData->gfxSettings->resolution.height))
+		70.f, static_cast<float>(this->stateData->gfxSettings->resolution.height))
 	);
 	this->sidebar.setFillColor(sf::Color(50, 50, 50, 100));
 	this->sidebar.setOutlineColor(sf::Color(200, 200, 200, 150));
@@ -82,7 +103,7 @@ void EditorState::initGui()
 	this->selectorRect.setTextureRect(this->textureRect);
 
 	this->textureSelector = new gui::TextureSelector(
-		20.f, 20.f, 500.f, 500.f, 
+		20.f, 20.f, 1800.f, 1000.f, 
 		this->stateData->gridSize, this->tileMap->getTileSheet(),
 		this->font, "Tiles"
 	);
@@ -90,7 +111,7 @@ void EditorState::initGui()
 
 void EditorState::initTileMap()
 {
-	this->tileMap = new TileMap(this->stateData->gridSize, 20, 11, "Resources/Images/Tiles/tileMap1.png");
+	this->tileMap = new TileMap(this->stateData->gridSize, 100, 100, "Resources/Images/Tiles/TopDownTileset.png");
 }
 
 //Constructors/Destructors
@@ -98,6 +119,7 @@ EditorState::EditorState(StateData* state_data)
 	: State(state_data)
 {
 	this->initVariables();
+	this->initView();
 	this->initBackground();
 	this->initFonts();
 	this->initText();
@@ -120,6 +142,45 @@ EditorState::~EditorState()
 	delete this->textureSelector;
 }
 
+//Accessors
+const std::string EditorState::getTypeStr() const
+{
+	switch (this->type)
+	{
+	case 0:
+		return "DEFAULT";
+		break;
+	case 1:
+		return "DAMAGING";
+		break;
+	case 2:
+		return "FOREGROUND";
+		break;
+	case 3:
+		return "SLOWING";
+		break;
+	case 4:
+		return "SPEEDING";
+		break;
+	case 5:
+		return "FALL_THROUGH";
+		break;
+	case 6:
+		return "TELEPORT";
+		break;
+	default:
+		return "";
+		break;
+	};
+}
+
+const std::string EditorState::getCollisionStr() const
+{
+	if (this->collision == true)
+		return "TRUE";
+	return "FALSE";
+}
+
 //Functions
 void EditorState::updateInput(const float& dt)
 {
@@ -135,6 +196,24 @@ void EditorState::updateInput(const float& dt)
 
 void EditorState::updateEditorInput(const float& dt)
 {
+	//Move view
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("MOVE_CAMERA_RIGHT"))))
+	{
+		this->view.move(std::ceil(this->cameraSpeed * dt), 0.f);
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("MOVE_CAMERA_LEFT"))))
+	{
+		this->view.move(-std::ceil(this->cameraSpeed * dt), 0.f);
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("MOVE_CAMERA_UP"))))
+	{
+		this->view.move(0.f, -std::ceil(this->cameraSpeed * dt));
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key(this->keybinds.at("MOVE_CAMERA_DOWN"))))
+	{
+		this->view.move(0.f, std::ceil(this->cameraSpeed * dt));
+	}
+	
 	//Add a tile to the tilemap
 	if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && this->getKeytime())
 	{
@@ -142,7 +221,8 @@ void EditorState::updateEditorInput(const float& dt)
 		{
 			if (!this->textureSelector->getActive())
 			{
-				this->tileMap->addTile(this->mousePosGrid.x, this->mousePosGrid.y, 0, this->textureRect);
+				this->tileMap->addTile(this->mousePosGrid.x, this->mousePosGrid.y, 0, 
+					this->textureRect, this->collision, this->type);
 			}
 			else
 			{
@@ -161,6 +241,33 @@ void EditorState::updateEditorInput(const float& dt)
 			}
 		}
 	}
+
+	//Toggle collision
+	if (sf::Keyboard::isKeyPressed(
+		sf::Keyboard::Key(this->keybinds.at("TOGGLE_COLLISION"))) && this->getKeytime())
+	{
+		if (this->collision)
+			this->collision = false;
+		else
+			this->collision = true;
+	}
+	//Toggle type
+	else if (sf::Keyboard::isKeyPressed(
+		sf::Keyboard::Key(this->keybinds.at("INCREASE_TYPE"))) && this->getKeytime())
+	{
+		if (this->type >= TileTypes::ALWAYS_AT_END - 1)
+			this->type = 0;
+		else
+			this->type++;
+	}
+	else if (sf::Keyboard::isKeyPressed(
+		sf::Keyboard::Key(this->keybinds.at("DECREASE_TYPE"))) && this->getKeytime())
+	{
+		if (this->type <= 0)
+			this->type = TileTypes::ALWAYS_AT_END - 1;
+		else
+			this->type--;
+	}
 }
 
 void EditorState::updateButtons()
@@ -168,12 +275,12 @@ void EditorState::updateButtons()
 	//Updates all the buttons in the state
 	for (auto& it : this->buttons)
 	{
-		it.second->update(this->mousePosView);
+		it.second->update(this->mousePosWindow);
 	}
 
 	for (auto& it : this->pMenu->getButtons())
 	{
-		it.second->updateTextAsButton(this->mousePosView);
+		it.second->updateTextAsButton(this->mousePosWindow);
 	}
 }
 
@@ -192,9 +299,12 @@ void EditorState::updateGui(const float& dt)
 
 	this->cursorText.setPosition(this->mousePosView.x + 50.f, this->mousePosView.y - 50.f);
 	std::stringstream ss;
-	ss << this->mousePosView.x << " " << this->mousePosView.y << "\n"
-		<< this->mousePosGrid.x << " " << this->mousePosGrid.y << "\n"
-		<< this->textureRect.left << " " << this->textureRect.top;
+	ss << "MousePosView: " << this->mousePosView.x << " " << this->mousePosView.y << "\n"
+		<< "MousePosGrid: " << this->mousePosGrid.x << " " << this->mousePosGrid.y << "\n"
+		<< "TextureRect: " << this->textureRect.left << " " << this->textureRect.top << "\n"
+		<< "Collision: " << this->getCollisionStr() << "\n"
+		<< "Type: " << this->getTypeStr() << "\n"
+		<< "Layers: " << this->tileMap->getLayerSize(this->mousePosGrid.x, this->mousePosGrid.y, this->layer) << "\n";
 	this->cursorText.setString(ss.str());
 }
 
@@ -202,13 +312,17 @@ void EditorState::updatePauseMenuButtons()
 {
 	if (this->pMenu->isButtonPressed("QUIT"))
 		this->endState();
+
 	if (this->pMenu->isButtonPressed("SAVE"))
 		this->tileMap->saveToFile("Resources/Maps/test.lotmmp");
+
+	if (this->pMenu->isButtonPressed("LOAD"))
+		this->tileMap->loadFromFile("Resources/Maps/test.lotmmp");
 }
 
 void EditorState::update(const float& dt)
 {
-	this->updateMousePositions();
+	this->updateMousePositions(&this->view);
 	this->updateKeytime(dt);
 	this->updateInput(dt);
 
@@ -220,7 +334,7 @@ void EditorState::update(const float& dt)
 	}
 	else //Paused
 	{
-		this->pMenu->update(this->mousePosView);
+		this->pMenu->update(this->mousePosWindow);
 		this->updatePauseMenuButtons();
 	}
 
@@ -237,13 +351,18 @@ void EditorState::renderButtons(sf::RenderTarget& target)
 
 void EditorState::renderGui(sf::RenderTarget& target)
 {
-	if(!this->textureSelector->getActive())
+	if (!this->textureSelector->getActive())
+	{
+		target.setView(this->view);
 		target.draw(this->selectorRect);
+	}
 
-	this->textureSelector->render(target);
-	target.draw(this->cursorText);
-
+	target.setView(this->window->getDefaultView());
+	this->textureSelector->render(target); 
 	target.draw(this->sidebar);
+
+	target.setView(this->view);
+	target.draw(this->cursorText);
 }
 
 void EditorState::render(sf::RenderTarget* target)
@@ -251,13 +370,18 @@ void EditorState::render(sf::RenderTarget* target)
 	if (!target)
 		target = this->window;
 
-	this->tileMap->render(*target);
+	target->setView(this->view);
+	this->tileMap->render(*target, this->mousePosGrid);
+	this->tileMap->renderDeferred(*target);
 
+	target->setView(this->window->getDefaultView());
 	this->renderButtons(*target);
+
 	this->renderGui(*target);
 
 	if (this->paused)
 	{
+		target->setView(this->window->getDefaultView());
 		this->pMenu->render(*target);
 	}
 }
