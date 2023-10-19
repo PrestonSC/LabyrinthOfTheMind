@@ -8,9 +8,9 @@ void Game::initVariables()
 {
     this->window = NULL;
 
-    this->dt = 0.f;
+    this->dt = 0.0083f;
 
-    this->gridSize = 100.f;
+    this->gridSize = 50.f;
 }
 
 void Game::initGraphicsSettings()
@@ -120,13 +120,16 @@ void Game::update()
 
     if (!this->states.empty())
     {
-        this->states.top()->update(this->dt);
-
-        if (this->states.top()->getQuit())
+        if (this->window->hasFocus())
         {
-            this->states.top()->endState();
-            delete this->states.top();
-            this->states.pop();
+            this->states.top()->update(this->dt);
+
+            if (this->states.top()->getQuit())
+            {
+                this->states.top()->endState();
+                delete this->states.top();
+                this->states.pop();
+            }
         }
     }
     //Application end

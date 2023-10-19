@@ -7,7 +7,7 @@ Tile::Tile()
 	this->type = 0;
 }
 
-Tile::Tile(float x, float y, float gridSizeF,
+Tile::Tile(int grid_x, int grid_y, float gridSizeF,
 	const sf::Texture& texture, const sf::IntRect& texture_rect,
 	bool collision, short type)
 {
@@ -15,7 +15,10 @@ Tile::Tile(float x, float y, float gridSizeF,
 	this->shape.setFillColor(sf::Color::White);
 	//this->shape.setOutlineThickness(1.f);
 	//this->shape.setOutlineColor(sf::Color::Black);
-	this->shape.setPosition(x, y);
+	this->shape.setPosition(
+		static_cast<float>(grid_x) * gridSizeF,
+		static_cast<float>(grid_y) * gridSizeF
+	);
 	this->shape.setTexture(&texture);
 	this->shape.setTextureRect(texture_rect);
 
@@ -28,8 +31,27 @@ Tile::~Tile()
 
 }
 
-
 //Accessors
+const short& Tile::getType() const
+{
+	return this->type;
+}
+
+const bool Tile::getCollision() const
+{
+	return this->collision;
+}
+
+const sf::Vector2f& Tile::getPosition() const
+{
+	return this->shape.getPosition();
+}
+
+const sf::FloatRect Tile::getGlobalBounds() const
+{
+	return this->shape.getGlobalBounds();
+}
+
 const std::string Tile::getAsString() const
 {
 	std::stringstream ss;
@@ -41,6 +63,11 @@ const std::string Tile::getAsString() const
 }
 
 //Functions
+const bool Tile::intersects(const sf::FloatRect bounds) const
+{
+	return this->shape.getGlobalBounds().intersects(bounds);
+}
+
 void Tile::update()
 {
 
